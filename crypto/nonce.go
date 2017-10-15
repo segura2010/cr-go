@@ -9,7 +9,7 @@ import (
 )
 
 type CryptoNonce struct {
-    EncryptedNonce []byte
+    EncryptedNonce [24]byte
 }
 
 func NewNonce(publicKey, serverKey []byte) (CryptoNonce){
@@ -18,16 +18,14 @@ func NewNonce(publicKey, serverKey []byte) (CryptoNonce){
 	h.Write(serverKey)
 	hash := h.Sum(nil)
 
-	o := CryptoNonce{
-		EncryptedNonce: hash,
-	}
+	o := CryptoNonce{}
+	copy(o.EncryptedNonce[:], hash[:24])
 	return o
 }
 
 func NewNonceWithServerNonce(nonce []byte) (CryptoNonce){
-	o := CryptoNonce{
-		EncryptedNonce: nonce,
-	}
+	o := CryptoNonce{}
+	copy(o.EncryptedNonce[:], nonce[:24])
 	return o
 }
 
@@ -35,7 +33,7 @@ func (o *CryptoNonce) Increment(){
 	var n int16
 	var tmp [22]byte
 	// read as int16le and increment
-	buf := bytes.NewReader(o.EncryptedNonce)
+	buf := bytes.NewReader(o.EncryptedNonce[:])
 	binary.Read(buf, binary.LittleEndian, &n)
 	binary.Read(buf, binary.LittleEndian, &tmp)
 	n += 2
@@ -44,5 +42,6 @@ func (o *CryptoNonce) Increment(){
 	binary.Write(newbuf, binary.LittleEndian, &n)
 	binary.Write(newbuf, binary.LittleEndian, &tmp)
 
-	o.EncryptedNonce = newbuf.Bytes()
+	copy(o.EncryptedNonce[:], newbuf.Bytes()[:24])
 }
+

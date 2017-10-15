@@ -35,11 +35,6 @@ func NewDefaultClientHello() (ClientHello){
 func NewClientHelloFromBytes(buff []byte) (ClientHello){
 	o := ClientHello{}
 
-	// calculate the length of contentHash in order to be able to read it
-	buffLen := len(buff)
-	contentHashLen := buffLen - (7*4)
-	contentHash := make([]byte, contentHashLen)
-
 	buf := bytes.NewReader(buff)
 
 	binary.Read(buf, binary.BigEndian, &o.Protocol)
@@ -47,7 +42,13 @@ func NewClientHelloFromBytes(buff []byte) (ClientHello){
 	binary.Read(buf, binary.BigEndian, &o.MajorVersion)
 	binary.Read(buf, binary.BigEndian, &o.MinorVersion)
 	binary.Read(buf, binary.BigEndian, &o.Build)
+
+	var contentHashLen int32
+	binary.Read(buf, binary.BigEndian, &contentHashLen)
+	contentHash := make([]byte, contentHashLen)
 	binary.Read(buf, binary.BigEndian, &contentHash)
+	
+
 	binary.Read(buf, binary.BigEndian, &o.DeviceType)
 	binary.Read(buf, binary.BigEndian, &o.AppStore)
 
@@ -65,10 +66,34 @@ func (o *ClientHello) Bytes() ([]byte){
 	binary.Write(buf, binary.BigEndian, o.MajorVersion)
 	binary.Write(buf, binary.BigEndian, o.MinorVersion)
 	binary.Write(buf, binary.BigEndian, o.Build)
+
+	contentHashLen := int32(len(o.ContentHash))
+	binary.Write(buf, binary.BigEndian, contentHashLen)
 	binary.Write(buf, binary.BigEndian, []byte(o.ContentHash))
+
 	binary.Write(buf, binary.BigEndian, o.DeviceType)
 	binary.Write(buf, binary.BigEndian, o.AppStore)
 
 	return buf.Bytes()
+}
+
+type ServerHello struct {
+	SessionKey []byte
+}
+
+func NewServerHelloFromBytes(buff []byte) (ServerHello){
+	o := ServerHello{}
+
+	buf := bytes.NewReader(buff)
+	var keyLen int32
+
+	binary.Read(buf, binary.BigEndian, &keyLen)
+
+	sessionKey := make([]byte, keyLen)
+	binary.Read(buf, binary.BigEndian, &sessionKey)
+
+	o.SessionKey = sessionKey[:]
+
+	return o
 }
 
