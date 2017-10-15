@@ -5,6 +5,8 @@ import (
     "encoding/hex"
 
     "github.com/segura2010/cr-go/crypto"
+    "github.com/segura2010/cr-go/packets"
+    "github.com/segura2010/cr-go/utils"
 )
 
 
@@ -23,5 +25,21 @@ func main(){
     fmt.Printf("\nTest PublicKey: %x", testPublicKey)
     nonce := crypto.NewNonce(testPublicKey, serverKey)
     fmt.Printf("\nNonce: %x", nonce.EncryptedNonce)
+
+    helloPkt := packets.NewDefaultClientHello()
+    b := helloPkt.Bytes()
+    fmt.Printf("\nHello: %x %d", b, len(b))
+
+    helloPkt2 := packets.NewClientHelloFromBytes(b)
+    bb := helloPkt2.Bytes()
+    fmt.Printf("\nHello2: %v %d", helloPkt2, len(bb))
+
+    loginPkt := packets.NewDefaultClientLogin()
+    HiLo := utils.Tag2HiLo("8U9V9U099") // test account
+    loginPkt.Hi = HiLo[0]
+    loginPkt.Lo = HiLo[1]
+    loginPkt.PassToken = ""
+    lb := loginPkt.Bytes()
+    fmt.Printf("\nLogin: %x %d", lb, len(lb))
 }
 

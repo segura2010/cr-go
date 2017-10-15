@@ -24,7 +24,7 @@ func NewNonce(publicKey, serverKey []byte) (CryptoNonce){
 	return o
 }
 
-func NewNonceWithServerNonce(nonce []byte){
+func NewNonceWithServerNonce(nonce []byte) (CryptoNonce){
 	o := CryptoNonce{
 		EncryptedNonce: nonce,
 	}
