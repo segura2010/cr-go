@@ -119,3 +119,9 @@ func (o *ClientLogin) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
+type ServerLoginOk struct {
+	Hi int32
+	Lo int32
+	PassToken string
+}
+

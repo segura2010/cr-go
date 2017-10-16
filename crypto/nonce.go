@@ -23,6 +23,18 @@ func NewNonce(publicKey, serverKey []byte) (CryptoNonce){
 	return o
 }
 
+func NewNonceWithNonce(publicKey, serverKey, nonce []byte) (CryptoNonce){
+	h := blake2.New(&blake2.Config{Size: 24})
+	h.Write(nonce)
+	h.Write(publicKey)
+	h.Write(serverKey)
+	hash := h.Sum(nil)
+
+	o := CryptoNonce{}
+	copy(o.EncryptedNonce[:], hash[:24])
+	return o
+}
+
 func NewNonceWithServerNonce(nonce []byte) (CryptoNonce){
 	o := CryptoNonce{}
 	copy(o.EncryptedNonce[:], nonce[:24])
@@ -30,8 +42,8 @@ func NewNonceWithServerNonce(nonce []byte) (CryptoNonce){
 }
 
 func (o *CryptoNonce) Increment(){
-	var n int16
-	var tmp [22]byte
+	var n int32
+	var tmp [20]byte
 	// read as int16le and increment
 	buf := bytes.NewReader(o.EncryptedNonce[:])
 	binary.Read(buf, binary.LittleEndian, &n)

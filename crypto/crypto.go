@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"golang.org/x/crypto/nacl/box"
 	"fmt"
+	"bytes"
+	"encoding/binary"
 
     "github.com/segura2010/cr-go/packets"
 )
@@ -45,8 +47,36 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		fmt.Printf("\nServerLoginFailed")
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
 		fmt.Printf("\nServerLoginOK")
-	}else{
+		o.Nonce = NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.Nonce.EncryptedNonce[:])
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.Nonce.EncryptedNonce, &o.SharedKey)
+		
+		fmt.Printf("\n\n%x", out)
 
+		if decrypted{
+			var nonce [24]byte
+			var sharedKey [32]byte
+
+			buf := bytes.NewReader(out)
+
+			binary.Read(buf, binary.BigEndian, &nonce)
+			binary.Read(buf, binary.BigEndian, &sharedKey)
+
+			o.Nonce = NewNonceWithServerNonce(nonce[:])
+			o.SharedKey = sharedKey
+
+			fmt.Printf("\n\nNonce: %x", o.Nonce.EncryptedNonce[:])
+			fmt.Printf("\n\nSharedKey: %x", o.SharedKey)
+
+			pkt.DecryptedPayload = out[56:] // remove nonce and sharedKey
+		}
+	}else{
+		fmt.Printf("\nReceived %d", pkt.Type)
+		fmt.Printf("\n\nNonce: %x", o.Nonce.EncryptedNonce[:])
+		o.Nonce.Increment()
+		fmt.Printf("\n\nNonce++: %x", o.Nonce.EncryptedNonce[:])
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.Nonce.EncryptedNonce, &o.SharedKey)
+		fmt.Printf("\n\n", decrypted)
+		fmt.Printf("\n\n%x", out)
 	}
 
 	return pkt
