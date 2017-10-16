@@ -3,6 +3,8 @@ package packets
 import (
 	"encoding/binary"
 	"bytes"
+
+	"github.com/segura2010/cr-go/utils"
 )
 
 type ClientHello struct {
@@ -66,10 +68,8 @@ func (o *ClientHello) Bytes() ([]byte){
 	binary.Write(buf, binary.BigEndian, o.MajorVersion)
 	binary.Write(buf, binary.BigEndian, o.MinorVersion)
 	binary.Write(buf, binary.BigEndian, o.Build)
-
-	contentHashLen := int32(len(o.ContentHash))
-	binary.Write(buf, binary.BigEndian, contentHashLen)
-	binary.Write(buf, binary.BigEndian, []byte(o.ContentHash))
+	
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.ContentHash))
 
 	binary.Write(buf, binary.BigEndian, o.DeviceType)
 	binary.Write(buf, binary.BigEndian, o.AppStore)

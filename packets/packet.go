@@ -49,7 +49,7 @@ func NewPacketFromBytes(buff []byte) (Packet){
 	// It creates the message bytes ready to be sent
 	buf := bytes.NewReader(buff)
 
-	var messageLength [6]byte // int24
+	var messageLength [3]byte // int24
 	o := Packet{}
 
 	binary.Read(buf, binary.BigEndian, &o.Type)

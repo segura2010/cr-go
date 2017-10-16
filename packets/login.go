@@ -3,6 +3,8 @@ package packets
 import (
 	"encoding/binary"
 	"bytes"
+
+	"github.com/segura2010/cr-go/utils"
 )
 
 type ClientLogin struct {
@@ -15,7 +17,7 @@ type ClientLogin struct {
 	ContentHash string
 	Udid string
 	OpenUdid string
-	MacAddress string
+	MacAddress [4]byte
 	Device string
 	AdvertisingGuid string
 	OsVersion string
@@ -46,19 +48,26 @@ func NewDefaultClientLogin() (ClientLogin){
 		Build: 690,
 		ContentHash: "5765c06d5996ebf4a15b258903c3a0de922a57dd",
 		Udid: "",
+		OpenUdid: "64e666532f11a6f4",
 		AppStore: 29,
 		Device: "D2303",
 		DeviceLang: "es-ES",
 		Language: 3,
+		FacebookId: "",
 		AdvertisingEnabled: 1,
 		AdvertisingGuid: "cc823b32-3dbc-4455-8d00-f6b1ef6ad4b1",
 		OsVersion: "4.4.4",
+		IsAndroid: 1,
 		AndroidId: "64e666532f11a6f4",
+		MacAddress: [4]byte{0xff,0xff,0xff,0xff},
+		AppleIfv: "",
+		KunlunSso: "",
+		KunlunUid: "",
 		U16: 1,
 		U13: "",
 		U24: "",
 		U25: "",
-		U26: 1,
+		U26: 0,
 	}
 
 	return o
@@ -80,31 +89,31 @@ func (o *ClientLogin) Bytes() ([]byte){
 
 	binary.Write(buf, binary.BigEndian, o.Hi)
 	binary.Write(buf, binary.BigEndian, o.Lo)
-	binary.Write(buf, binary.BigEndian, []byte(o.PassToken))
-	binary.Write(buf, binary.BigEndian, o.MajorVersion)
-	binary.Write(buf, binary.BigEndian, o.MinorVersion)
-	binary.Write(buf, binary.BigEndian, o.Build)
-	binary.Write(buf, binary.BigEndian, []byte(o.ContentHash))
-	binary.Write(buf, binary.BigEndian, []byte(o.Udid))
-	binary.Write(buf, binary.BigEndian, []byte(o.OpenUdid))
-	binary.Write(buf, binary.BigEndian, []byte(o.MacAddress))
-	binary.Write(buf, binary.BigEndian, []byte(o.Device))
-	binary.Write(buf, binary.BigEndian, []byte(o.AdvertisingGuid))
-	binary.Write(buf, binary.BigEndian, []byte(o.OsVersion))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.PassToken))
+	binary.Write(buf, binary.BigEndian, utils.GetRrsInt32(o.MajorVersion))
+	binary.Write(buf, binary.BigEndian, utils.GetRrsInt32(o.MinorVersion))
+	binary.Write(buf, binary.BigEndian, utils.GetRrsInt32(o.Build))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.ContentHash))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.Udid))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.OpenUdid))
+	binary.Write(buf, binary.BigEndian, o.MacAddress)
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.Device))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.AdvertisingGuid))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.OsVersion))
 	binary.Write(buf, binary.BigEndian, o.IsAndroid)
-	binary.Write(buf, binary.BigEndian, []byte(o.U13))
-	binary.Write(buf, binary.BigEndian, []byte(o.AndroidId))
-	binary.Write(buf, binary.BigEndian, []byte(o.DeviceLang))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.U13))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.AndroidId))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.DeviceLang))
 	binary.Write(buf, binary.BigEndian, o.U16)
 	binary.Write(buf, binary.BigEndian, o.Language)
-	binary.Write(buf, binary.BigEndian, []byte(o.FacebookId))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.FacebookId))
 	binary.Write(buf, binary.BigEndian, o.AdvertisingEnabled)
-	binary.Write(buf, binary.BigEndian, []byte(o.AppleIfv))
-	binary.Write(buf, binary.BigEndian, o.AppStore)
-	binary.Write(buf, binary.BigEndian, []byte(o.KunlunSso))
-	binary.Write(buf, binary.BigEndian, []byte(o.KunlunUid))
-	binary.Write(buf, binary.BigEndian, []byte(o.U24))
-	binary.Write(buf, binary.BigEndian, []byte(o.U25))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.AppleIfv))
+	binary.Write(buf, binary.BigEndian, utils.GetRrsInt32(o.AppStore))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.KunlunSso))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.KunlunUid))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.U24))
+	utils.WriteBytes(buf, binary.BigEndian, []byte(o.U25))
 	binary.Write(buf, binary.BigEndian, o.U26)
 
 	return buf.Bytes()

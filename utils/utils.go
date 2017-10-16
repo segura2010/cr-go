@@ -1,7 +1,52 @@
 package utils
 
+import (
+	"encoding/binary"
+	"bytes"
+	"io"
+)
+
 func Int24ToInt32(bs []byte) uint32 {
     return uint32(bs[2]) | uint32(bs[1])<<8 | uint32(bs[0])<<16
+}
+
+func GetRrsInt32(value int32)([]byte){
+	buf := new(bytes.Buffer)
+
+	if value == 0{
+		binary.Write(buf, binary.BigEndian, byte(0))
+	}
+
+	var b int32
+	rotate := true
+	value = (value << 1) ^ (value >> 31)
+	value = value >> 0
+	for value > 0{
+		b = (value & 0x7f)
+    	if value >= 0x80{
+       		b |= 0x80;
+    	}
+    	if rotate {
+        	rotate = false
+        	lsb := b & 0x1
+        	msb := (b & 0x80) >> 7
+        	b = b >> 1 // rotate to the right
+        	b = b & -(1^0xC0) // clear 7th and 6th bit
+        	b = b | (msb << 7) | (lsb << 6) // insert msb and lsb back in
+    	}
+
+        binary.Write(buf, binary.BigEndian, byte(b))
+        value = value >> 7;
+    }
+
+    return buf.Bytes()
+}
+
+func WriteBytes(w io.Writer, order binary.ByteOrder, data []byte){
+	var fieldLen int32
+	fieldLen = int32(len(data))
+	binary.Write(w, order, fieldLen)
+	binary.Write(w, order, data)
 }
 
 func StringIndexOf(array string, e rune) (int){

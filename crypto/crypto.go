@@ -38,6 +38,7 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		// hello packet is not encrypted
 		hello := packets.NewServerHelloFromBytes(pkt.Payload)
 		o.SessionKey = hello.SessionKey
+		fmt.Printf("\nServerHello")
 		fmt.Printf("\nReceived sessionkey: %x", o.SessionKey)
 	}else if pkt.Type == packets.MessageType["ServerLoginFailed"]{
 		fmt.Printf("\nServerLoginFailed")
