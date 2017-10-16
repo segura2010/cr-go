@@ -11,7 +11,7 @@ import (
 type Crypto struct {
     PrivateKey [32]byte
     PublicKey [32]byte
-    ServerKey []byte
+    ServerKey [32]byte
     SharedKey [32]byte
     SessionKey []byte
     Nonce CryptoNonce
@@ -25,10 +25,11 @@ func NewCrypto(serverKey []byte) (Crypto){
 	}
 
 	o := Crypto{
-		ServerKey: serverKey,
 		PublicKey: *publicKey,
 		PrivateKey: *privateKey,
 	}
+
+	copy(o.ServerKey[:], serverKey[:32])
 
 	return o
 }
@@ -43,7 +44,7 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 	}else if pkt.Type == packets.MessageType["ServerLoginFailed"]{
 		fmt.Printf("\nServerLoginFailed")
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
-		fmt.Printf("\nServerLoginFailed")
+		fmt.Printf("\nServerLoginOK")
 	}else{
 
 	}
@@ -54,14 +55,17 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 func (o *Crypto) EncryptPacket(pkt packets.Packet) (packets.Packet){
 	if pkt.Type == packets.MessageType["ClientLogin"]{
 		// Generate initial Nonce
-		o.Nonce = NewNonce(o.PublicKey[:], o.ServerKey)
+		o.Nonce = NewNonce(o.PublicKey[:], o.ServerKey[:])
+		// generate initial sharedkey
+		box.Precompute(&o.SharedKey, &o.ServerKey, &o.PrivateKey)
+
+		// generate message [sessionKey][nonce][payload]
 		message := append(o.SessionKey, o.Nonce.EncryptedNonce[:]...)
 		message = append(message, pkt.DecryptedPayload...)
-		
-		var out []byte
-		out,_ = box.OpenAfterPrecomputation(out, message, &o.Nonce.EncryptedNonce, &o.SharedKey)
-		
-		pkt.Payload = append(o.PublicKey[:], out...)
+
+		// encrypt appending the client public key to the encrypted message
+		out := box.SealAfterPrecomputation(o.PublicKey[:], message, &o.Nonce.EncryptedNonce, &o.SharedKey)
+		pkt.Payload = out
 	}else{
 
 	}
