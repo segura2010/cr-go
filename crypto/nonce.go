@@ -42,13 +42,16 @@ func NewNonceWithServerNonce(nonce []byte) (CryptoNonce){
 }
 
 func (o *CryptoNonce) Increment(){
-	var n int32
-	var tmp [20]byte
+	var n int16
+	var tmp [22]byte
 	// read as int16le and increment
 	buf := bytes.NewReader(o.EncryptedNonce[:])
 	binary.Read(buf, binary.LittleEndian, &n)
 	binary.Read(buf, binary.LittleEndian, &tmp)
-	n += 2
+
+	n = n + 1
+	//n = n % 32767
+
 	// create new byte buffer to save the incremented value
 	newbuf := new(bytes.Buffer)
 	binary.Write(newbuf, binary.LittleEndian, &n)

@@ -3,6 +3,7 @@ package packets
 import(
 	"encoding/binary"
 	"bytes"
+	"fmt"
 
 	"github.com/segura2010/cr-go/utils"
 )
@@ -13,11 +14,13 @@ var MessageType = map[string]uint16{
 	"ServerLoginFailed": 20103,
 	"ServerLoginOk": 20104,
 	"ServerVisitedHome": 24113,
+	"ServerKeepAliveOk": 20108,
 
 	// Client
 	"ClientHello": 10100,
 	"ClientLogin": 10101,
 	"ClientVisitHome": 14113,
+	"ClientKeepAlive": 10108,
 }
 
 type Packet struct {
@@ -56,7 +59,14 @@ func NewPacketFromBytes(buff []byte) (Packet){
 	binary.Read(buf, binary.BigEndian, &messageLength)
 	binary.Read(buf, binary.BigEndian, &o.Version)
 
+	fmt.Printf("\nMessage len: %x", messageLength)
+
 	o.Length = int32(utils.Int24ToInt32(messageLength[:]))
+
+	if o.Length == 8585{
+		o.Length = 1017
+	}
+	fmt.Printf("\nMessage len: %x", o.Length)
 
 	var payload = make([]byte, o.Length)
 	binary.Read(buf, binary.BigEndian, &payload)

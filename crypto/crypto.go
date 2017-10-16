@@ -16,7 +16,8 @@ type Crypto struct {
     ServerKey [32]byte
     SharedKey [32]byte
     SessionKey []byte
-    Nonce CryptoNonce
+    DecryptionNonce CryptoNonce
+    EncryptionNonce CryptoNonce
 }
 
 func NewCrypto(serverKey []byte) (Crypto){
@@ -47,10 +48,10 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		fmt.Printf("\nServerLoginFailed")
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
 		fmt.Printf("\nServerLoginOK")
-		o.Nonce = NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.Nonce.EncryptedNonce[:])
-		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.Nonce.EncryptedNonce, &o.SharedKey)
+		o.EncryptionNonce = NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.EncryptionNonce.EncryptedNonce, &o.SharedKey)
 		
-		fmt.Printf("\n\n%x", out)
+		//fmt.Printf("\n\n%x", out)
 
 		if decrypted{
 			var nonce [24]byte
@@ -61,22 +62,21 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 			binary.Read(buf, binary.BigEndian, &nonce)
 			binary.Read(buf, binary.BigEndian, &sharedKey)
 
-			o.Nonce = NewNonceWithServerNonce(nonce[:])
+			o.DecryptionNonce = NewNonceWithServerNonce(nonce[:])
 			o.SharedKey = sharedKey
 
-			fmt.Printf("\n\nNonce: %x", o.Nonce.EncryptedNonce[:])
+			fmt.Printf("\n\nDecryptionNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
 			fmt.Printf("\n\nSharedKey: %x", o.SharedKey)
 
 			pkt.DecryptedPayload = out[56:] // remove nonce and sharedKey
 		}
 	}else{
-		fmt.Printf("\nReceived %d", pkt.Type)
-		fmt.Printf("\n\nNonce: %x", o.Nonce.EncryptedNonce[:])
-		o.Nonce.Increment()
-		fmt.Printf("\n\nNonce++: %x", o.Nonce.EncryptedNonce[:])
-		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.Nonce.EncryptedNonce, &o.SharedKey)
-		fmt.Printf("\n\n", decrypted)
-		fmt.Printf("\n\n%x", out)
+		//fmt.Printf("\nDD:\n%x", pkt.Payload)
+		o.DecryptionNonce.Increment()
+		out, _ := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.DecryptionNonce.EncryptedNonce, &o.SharedKey)
+		pkt.DecryptedPayload = out
+		//fmt.Printf("\n", decrypted)
+		//fmt.Printf("\n%x", out)
 	}
 
 	return pkt
@@ -85,19 +85,22 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 func (o *Crypto) EncryptPacket(pkt packets.Packet) (packets.Packet){
 	if pkt.Type == packets.MessageType["ClientLogin"]{
 		// Generate initial Nonce
-		o.Nonce = NewNonce(o.PublicKey[:], o.ServerKey[:])
+		o.EncryptionNonce = NewNonce(o.PublicKey[:], o.ServerKey[:])
+		fmt.Printf("\n\nEncryptionNonce: %x", o.EncryptionNonce.EncryptedNonce[:])
 		// generate initial sharedkey
 		box.Precompute(&o.SharedKey, &o.ServerKey, &o.PrivateKey)
 
 		// generate message [sessionKey][nonce][payload]
-		message := append(o.SessionKey, o.Nonce.EncryptedNonce[:]...)
+		message := append(o.SessionKey, o.EncryptionNonce.EncryptedNonce[:]...)
 		message = append(message, pkt.DecryptedPayload...)
 
 		// encrypt appending the client public key to the encrypted message
-		out := box.SealAfterPrecomputation(o.PublicKey[:], message, &o.Nonce.EncryptedNonce, &o.SharedKey)
+		out := box.SealAfterPrecomputation(o.PublicKey[:], message, &o.EncryptionNonce.EncryptedNonce, &o.SharedKey)
 		pkt.Payload = out
 	}else{
-
+		o.EncryptionNonce.Increment()
+		out := box.SealAfterPrecomputation(nil, pkt.DecryptedPayload, &o.EncryptionNonce.EncryptedNonce, &o.SharedKey)
+		pkt.Payload = out
 	}
 
 	return pkt
