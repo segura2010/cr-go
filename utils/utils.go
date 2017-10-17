@@ -36,10 +36,45 @@ func GetRrsInt32(value int32)([]byte){
     	}
 
         binary.Write(buf, binary.BigEndian, byte(b))
-        value = value >> 7;
+        value = int32(uint32(value) >> 7)
     }
 
     return buf.Bytes()
+}
+
+func ReadRrsInt32(w io.Reader, order binary.ByteOrder, data *int32){
+	var c int32 = 0
+	var value int32 = int32(uint32(0) >> 0) // uint32(x)>>y = x>>>y
+	var seventh byte
+	var b byte
+	var bb int32
+	var msb byte
+
+	for{
+
+		binary.Read(w, order, &b)
+		bb = int32(b)
+
+		if c == 0{
+			seventh = (b & 0x40) >> 6 // save 7th bit
+			msb = (b & 0x80) >> 7 // save msb
+			bb = int32(int32(b) << 1) // rotate to the left
+			bb = int32(bb & int32((-1)^(0x181))) // clear 8th and 1st bit and 9th if any
+			bb = bb | int32(msb << 7) | int32(seventh) // insert msb and 6th back in
+		}
+
+		value |= int32(uint32(bb & 0x7f) << uint32(7 * c))
+
+		c += 1
+
+		if ((b & 0x80) == 0){
+			break;
+		}
+    }
+
+    value = ( int32(uint32(value) >> uint32(1)) ^ -(value & 1) ) | 0
+
+    *data = int32(value)
 }
 
 func WriteBytes(w io.Writer, order binary.ByteOrder, data []byte){
@@ -47,6 +82,20 @@ func WriteBytes(w io.Writer, order binary.ByteOrder, data []byte){
 	fieldLen = int32(len(data))
 	binary.Write(w, order, fieldLen)
 	binary.Write(w, order, data)
+}
+
+func ReadString(w io.Reader, order binary.ByteOrder, data *string){
+	var fieldLen int32
+	var field []byte
+
+	binary.Read(w, order, &fieldLen)
+	if fieldLen <= 0{
+		*data = ""
+		return
+	}
+	field = make([]byte, fieldLen)
+	binary.Read(w, order, &field)
+	*data = string(field)
 }
 
 func StringIndexOf(array string, e rune) (int){

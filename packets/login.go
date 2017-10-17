@@ -123,5 +123,61 @@ type ServerLoginOk struct {
 	Hi int32
 	Lo int32
 	PassToken string
+	GameCenterId string
+	FacebookId string
+	MajorVersion int32
+	Build int32
+	ContentVersion int32
+	Environment string
+	SessionCount int32
+	PlayTimeSeconds int32
+	DaysSinceStartedPlaying int32
+	FacebookAppId string
+	ServerTime string
+	AccountCreatedDate string
+	U16 int32
+	GoogleServiceId string
+	U18 string
+	U19 string
+	Region string
+	ContentURL string
+	EventAssetsURL string
+	U23 byte
+}
+
+func NewServerLoginOkFromBytes(buff []byte) (ServerLoginOk){
+	o := ServerLoginOk{}
+
+	var buf *bytes.Reader
+
+	buf = bytes.NewReader(buff)
+	binary.Read(buf, binary.BigEndian, &o.Hi)
+	binary.Read(buf, binary.BigEndian, &o.Lo)
+	binary.Read(buf, binary.BigEndian, &o.Hi) // it is repeated..
+	binary.Read(buf, binary.BigEndian, &o.Lo)
+	utils.ReadString(buf, binary.BigEndian, &o.PassToken)
+	utils.ReadString(buf, binary.BigEndian, &o.GameCenterId)
+	utils.ReadString(buf, binary.BigEndian, &o.FacebookId)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.MajorVersion)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Build)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Build) // it is repeated..
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.ContentVersion)
+	utils.ReadString(buf, binary.BigEndian, &o.Environment)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.SessionCount)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.PlayTimeSeconds)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.DaysSinceStartedPlaying)
+	utils.ReadString(buf, binary.BigEndian, &o.FacebookAppId)
+	utils.ReadString(buf, binary.BigEndian, &o.ServerTime)
+	utils.ReadString(buf, binary.BigEndian, &o.AccountCreatedDate)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.U16)
+	utils.ReadString(buf, binary.BigEndian, &o.GoogleServiceId)
+	utils.ReadString(buf, binary.BigEndian, &o.U18)
+	utils.ReadString(buf, binary.BigEndian, &o.U19)
+	utils.ReadString(buf, binary.BigEndian, &o.Region)
+	utils.ReadString(buf, binary.BigEndian, &o.ContentURL)
+	utils.ReadString(buf, binary.BigEndian, &o.EventAssetsURL)
+	binary.Read(buf, binary.BigEndian, &o.U23)
+
+	return o
 }
 
