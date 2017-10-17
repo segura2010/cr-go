@@ -48,8 +48,8 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		fmt.Printf("\nServerLoginFailed")
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
 		fmt.Printf("\nServerLoginOK")
-		o.EncryptionNonce = NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
-		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.EncryptionNonce.EncryptedNonce, &o.SharedKey)
+		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &tmpNonce.EncryptedNonce, &o.SharedKey)
 		
 		//fmt.Printf("\n\n%x", out)
 
@@ -65,18 +65,25 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 			o.DecryptionNonce = NewNonceWithServerNonce(nonce[:])
 			o.SharedKey = sharedKey
 
-			fmt.Printf("\n\nDecryptionNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
-			fmt.Printf("\n\nSharedKey: %x", o.SharedKey)
+			fmt.Printf("\nReceived DecryptionNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
+			fmt.Printf("\nReceived SharedKey: %x", o.SharedKey)
 
 			pkt.DecryptedPayload = out[56:] // remove nonce and sharedKey
 		}
 	}else{
-		//fmt.Printf("\nDD:\n%x", pkt.Payload)
 		o.DecryptionNonce.Increment()
-		out, _ := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.DecryptionNonce.EncryptedNonce, &o.SharedKey)
+
+		// fmt.Printf("\n\n--- Decrypt ---")
+		// fmt.Printf("\nMessage: %x", pkt.Payload)
+		// fmt.Printf("\nNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
+		// fmt.Printf("\nSharedKey: %x", o.SharedKey[:])
+		// fmt.Printf("\n--- /Decrypt ---")
+		
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.DecryptionNonce.EncryptedNonce, &o.SharedKey)
 		pkt.DecryptedPayload = out
-		//fmt.Printf("\n", decrypted)
-		//fmt.Printf("\n%x", out)
+		if !decrypted{
+			fmt.Println("Not decrypted!")
+		}
 	}
 
 	return pkt
@@ -99,6 +106,13 @@ func (o *Crypto) EncryptPacket(pkt packets.Packet) (packets.Packet){
 		pkt.Payload = out
 	}else{
 		o.EncryptionNonce.Increment()
+
+		// fmt.Printf("\n\n--- Encrypt ---")
+		// fmt.Printf("\nMessage: %x", pkt.Payload)
+		// fmt.Printf("\nNonce: %x", o.EncryptionNonce.EncryptedNonce[:])
+		// fmt.Printf("\nSharedKey: %x", o.SharedKey[:])
+		// fmt.Printf("\n--- /Encrypt ---")
+
 		out := box.SealAfterPrecomputation(nil, pkt.DecryptedPayload, &o.EncryptionNonce.EncryptedNonce, &o.SharedKey)
 		pkt.Payload = out
 	}

@@ -3,9 +3,7 @@ package packets
 import(
 	"encoding/binary"
 	"bytes"
-	"fmt"
-
-	"github.com/segura2010/cr-go/utils"
+	//"fmt"
 )
 
 var MessageType = map[string]uint16{
@@ -48,7 +46,7 @@ func (o *Packet) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
-func NewPacketFromBytes(buff []byte) (Packet){
+func NewPacketFromBytes(buff []byte, length int) (Packet){
 	// It creates the message bytes ready to be sent
 	buf := bytes.NewReader(buff)
 
@@ -59,14 +57,8 @@ func NewPacketFromBytes(buff []byte) (Packet){
 	binary.Read(buf, binary.BigEndian, &messageLength)
 	binary.Read(buf, binary.BigEndian, &o.Version)
 
-	fmt.Printf("\nMessage len: %x", messageLength)
-
-	o.Length = int32(utils.Int24ToInt32(messageLength[:]))
-
-	if o.Length == 8585{
-		o.Length = 1017
-	}
-	fmt.Printf("\nMessage len: %x", o.Length)
+	headerLen := 7
+	o.Length = int32(length - headerLen)
 
 	var payload = make([]byte, o.Length)
 	binary.Read(buf, binary.BigEndian, &payload)

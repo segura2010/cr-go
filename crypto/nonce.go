@@ -49,7 +49,7 @@ func (o *CryptoNonce) Increment(){
 	binary.Read(buf, binary.LittleEndian, &n)
 	binary.Read(buf, binary.LittleEndian, &tmp)
 
-	n = n + 1
+	n = n + 2
 	//n = n % 32767
 
 	// create new byte buffer to save the incremented value
