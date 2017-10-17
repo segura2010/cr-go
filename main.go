@@ -4,7 +4,9 @@ import (
     "fmt"
     "encoding/hex"
 
-    "github.com/segura2010/cr-go/crypto"
+    //"io/ioutil"
+
+    "github.com/segura2010/cr-go/client"
     "github.com/segura2010/cr-go/packets"
     "github.com/segura2010/cr-go/utils"
 )
@@ -13,33 +15,71 @@ import (
 func main(){
     fmt.Printf("Welcome to cr-go!")
 
-    serverKey_202 := "980cf7bb7262b386fea61034aba7370613627919666b34e6ecf66307a381dd61"
+    serverKey_202 := "72f1a4a4c48e44da0c42310f800e96624e6dc6a641a9d41c3b5039d8dfadc27e" // node-proxy
+    //serverKey_202 := "980cf7bb7262b386fea61034aba7370613627919666b34e6ecf66307a381dd61"
     serverKey,_ := hex.DecodeString(serverKey_202)
-    c := crypto.NewCrypto(serverKey)
 
-    fmt.Printf("\nServerKey: %x", c.ServerKey)
-    fmt.Printf("\nPrivateKey: %x", c.PrivateKey)
-    fmt.Printf("\nPublicKey: %x", c.PublicKey)
+    helloPayload := packets.NewDefaultClientHello()
+    helloPkt := packets.Packet{
+        Type: packets.MessageType["ClientHello"],
+        Version: 0,
+        Payload: helloPayload.Bytes(),
+    }
 
-    testPublicKey,_ := hex.DecodeString("4af8c34a51ac604f2ccb3ea249d4ed0e70f6cc2f39b70f6a5b50bcaaf5ca3f24")
-    fmt.Printf("\nTest PublicKey: %x", testPublicKey)
-    nonce := crypto.NewNonce(testPublicKey, serverKey)
-    fmt.Printf("\nNonce: %x", nonce.EncryptedNonce)
+    loginPayload := packets.NewDefaultClientLogin()
+    HiLo := utils.Tag2HiLo("") // your account
+    loginPayload.Hi = HiLo[0]
+    loginPayload.Lo = HiLo[1]
+    loginPayload.PassToken = "" // your account PassToken
 
-    helloPkt := packets.NewDefaultClientHello()
-    b := helloPkt.Bytes()
-    fmt.Printf("\nHello: %x %d", b, len(b))
+    loginPkt := packets.Packet{
+        Type: packets.MessageType["ClientLogin"],
+        Version: 0,
+        DecryptedPayload: loginPayload.Bytes(),
+    }
 
-    helloPkt2 := packets.NewClientHelloFromBytes(b)
-    bb := helloPkt2.Bytes()
-    fmt.Printf("\nHello2: %v %d", helloPkt2, len(bb))
+    var basicPkt packets.Packet
 
-    loginPkt := packets.NewDefaultClientLogin()
-    HiLo := utils.Tag2HiLo("8U9V9U099") // test account
-    loginPkt.Hi = HiLo[0]
-    loginPkt.Lo = HiLo[1]
-    loginPkt.PassToken = ""
-    lb := loginPkt.Bytes()
-    fmt.Printf("\nLogin: %x %d", lb, len(lb))
+    serverAddress := "0.0.0.0:9339"
+    //serverAddress := "game.clashroyaleapp.com:9339"
+
+    c := client.NewCRClient(serverKey)
+    c.Connect(serverAddress)
+    defer c.Close()
+
+    c.SendPacket(helloPkt)
+    c.RecvPacket() // receive hello response
+
+    c.SendPacket(loginPkt)
+    basicPkt = c.RecvPacket() // receive login response
+
+    // receive multiple packets the server sends after login
+    c.RecvPacket() // OwnHomeData
+    c.RecvPacket() // InboxGlobal
+    c.RecvPacket() // FriendList
+
+    // send keepalive
+    basicPkt = packets.Packet{
+        Type: packets.MessageType["ClientKeepAlive"],
+        Version: 0,
+    }
+    c.SendPacket(basicPkt)
+    c.RecvPacket() // receive keepalive response
+
+    // send visithome
+    HiLo = utils.Tag2HiLo("P0C9QP8L")
+    visitHomeMsg := packets.ClientVisitHome{
+        Hi: HiLo[0],
+        Lo: HiLo[1],
+    }
+    basicPkt = packets.Packet{
+        Type: packets.MessageType["ClientVisitHome"],
+        Version: 0,
+        DecryptedPayload: visitHomeMsg.Bytes(),
+    }
+    c.SendPacket(basicPkt)
+    basicPkt = c.RecvPacket() // receive visithome response
+    fmt.Printf("\nVisitedHome: %x", basicPkt.DecryptedPayload)
+    
 }
 

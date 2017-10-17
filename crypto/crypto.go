@@ -90,7 +90,9 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 }
 
 func (o *Crypto) EncryptPacket(pkt packets.Packet) (packets.Packet){
-	if pkt.Type == packets.MessageType["ClientLogin"]{
+	if pkt.Type == packets.MessageType["ClientHello"]{
+		// Client hello is uncrypted
+	}else if pkt.Type == packets.MessageType["ClientLogin"]{
 		// Generate initial Nonce
 		o.EncryptionNonce = NewNonce(o.PublicKey[:], o.ServerKey[:])
 		fmt.Printf("\n\nEncryptionNonce: %x", o.EncryptionNonce.EncryptedNonce[:])
