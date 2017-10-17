@@ -3,6 +3,10 @@ package packets
 import (
 	"encoding/binary"
 	"bytes"
+	"fmt"
+
+	"github.com/segura2010/cr-go/utils"
+	"github.com/segura2010/cr-go/packets/components"
 )
 
 type ClientVisitHome struct {
@@ -33,6 +37,7 @@ func (o *ClientVisitHome) Bytes() ([]byte){
 
 
 type ServerVisitHome struct {
+	Deck [8]components.Card
 	Hi int32
 	Lo int32
 	Username string
@@ -41,14 +46,64 @@ type ServerVisitHome struct {
 func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 	o := ServerVisitHome{}
 
-	/* tests...
+	// tests...
 	var buf *bytes.Reader
-	var fieldLen int32
+	var tmp int32
+	var btmp byte
+	var isPresent byte
+	var tmpbuf [30]byte
 
-	buf = bytes.NewReader(buff[0x58:])
+	buf = bytes.NewReader(buff)
+
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	binary.Read(buf, binary.BigEndian, &btmp)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+
+	// read actual deck cards
+	for i:=0;i<8;i++{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Deck[i].Id)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Deck[i].Level)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Deck[i].Count)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	}
+
 	binary.Read(buf, binary.BigEndian, &o.Hi)
 	binary.Read(buf, binary.BigEndian, &o.Lo)
 
+	// HomeUnknownSeason optional (read it if present, continue if not)
+	binary.Read(buf, binary.BigEndian, &isPresent)
+	fmt.Printf("\nseason?: %d", isPresent)
+	if isPresent > 0{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	}
+
+	// HomeSeason[]
+	// read length, then read each season info
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	for i:=0;i<int(tmp);i++{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	}
+
+	// more unknowns..
+	for i:=0;i<8;i++{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	}
+
+	binary.Read(buf, binary.BigEndian, &tmpbuf)
+	fmt.Printf("\n%s", tmpbuf[:])
+
+	//utils.ReadString(buf, binary.BigEndian, &o.Username)
+
+	/*
 	buf = bytes.NewReader(buff[0x71:])
 	binary.Read(buf, binary.BigEndian, &fieldLen)
 	name := make([]byte, fieldLen)
