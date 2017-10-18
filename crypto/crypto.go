@@ -42,16 +42,16 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		// hello packet is not encrypted
 		hello := packets.NewServerHelloFromBytes(pkt.Payload)
 		o.SessionKey = hello.SessionKey
-		fmt.Printf("\nServerHello")
-		fmt.Printf("\nReceived sessionkey: %x", o.SessionKey)
+		//fmt.Printf("\nServerHello")
+		//fmt.Printf("\nReceived sessionkey: %x", o.SessionKey)
 	}else if pkt.Type == packets.MessageType["ServerLoginFailed"]{
-		fmt.Printf("\nServerLoginFailed")
+		//fmt.Printf("\nServerLoginFailed")
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
-		fmt.Printf("\nServerLoginOK")
+		//fmt.Printf("\nServerLoginOK")
 		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
 		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &tmpNonce.EncryptedNonce, &o.SharedKey)
 		
-		fmt.Printf("\n\n%x", out)
+		//fmt.Printf("\n\n%x", out)
 
 		if decrypted{
 			var nonce [24]byte
@@ -65,8 +65,8 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 			o.DecryptionNonce = NewNonceWithServerNonce(nonce[:])
 			o.SharedKey = sharedKey
 
-			fmt.Printf("\nReceived DecryptionNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
-			fmt.Printf("\nReceived SharedKey: %x", o.SharedKey)
+			//fmt.Printf("\nReceived DecryptionNonce: %x", o.DecryptionNonce.EncryptedNonce[:])
+			//fmt.Printf("\nReceived SharedKey: %x", o.SharedKey)
 
 			pkt.DecryptedPayload = out[56:] // remove nonce and sharedKey
 		}
@@ -82,7 +82,7 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &o.DecryptionNonce.EncryptedNonce, &o.SharedKey)
 		pkt.DecryptedPayload = out
 		if !decrypted{
-			fmt.Println("Not decrypted!")
+			fmt.Printf("\nNot decrypted!")
 		}
 	}
 
@@ -95,7 +95,7 @@ func (o *Crypto) EncryptPacket(pkt packets.Packet) (packets.Packet){
 	}else if pkt.Type == packets.MessageType["ClientLogin"]{
 		// Generate initial Nonce
 		o.EncryptionNonce = NewNonce(o.PublicKey[:], o.ServerKey[:])
-		fmt.Printf("\n\nEncryptionNonce: %x", o.EncryptionNonce.EncryptedNonce[:])
+		//fmt.Printf("\n\nEncryptionNonce: %x", o.EncryptionNonce.EncryptedNonce[:])
 		// generate initial sharedkey
 		box.Precompute(&o.SharedKey, &o.ServerKey, &o.PrivateKey)
 
