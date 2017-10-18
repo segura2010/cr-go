@@ -2,6 +2,7 @@ package client
 
 import (
 	"net"
+    //"fmt"
 
     "github.com/segura2010/cr-go/crypto"
     "github.com/segura2010/cr-go/packets"
@@ -53,12 +54,23 @@ func (o *CRClient) RecvPacket() (packets.Packet){
     var n int // bytes read
     var err error
 
-    n, err = o.Socket.Read(buf[:MAX_LENGTH])
+    n, err = o.Socket.Read(buf[:7])
     if err != nil{
     	panic(err)
     }
 
     pkt := packets.NewPacketFromBytes(buf[:], n)
+
+    if int(pkt.Length) > MAX_LENGTH{
+        return pkt
+    }
+
+    n, err = o.Socket.Read(buf[:pkt.Length])
+    if err != nil{
+        panic(err)
+    }
+    pkt.Payload = buf[:pkt.Length]
+
     pkt = o.Crypt.DecryptPacket(pkt)
 
     return pkt

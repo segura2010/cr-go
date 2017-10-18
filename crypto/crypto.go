@@ -51,7 +51,7 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
 		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &tmpNonce.EncryptedNonce, &o.SharedKey)
 		
-		//fmt.Printf("\n\n%x", out)
+		fmt.Printf("\n\n%x", out)
 
 		if decrypted{
 			var nonce [24]byte
