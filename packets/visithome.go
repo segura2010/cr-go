@@ -3,10 +3,10 @@ package packets
 import (
 	"encoding/binary"
 	"bytes"
-	"fmt"
 
 	"github.com/segura2010/cr-go/utils"
 	"github.com/segura2010/cr-go/packets/components"
+	"github.com/segura2010/cr-go/resources"
 )
 
 type ClientVisitHome struct {
@@ -40,18 +40,32 @@ type ServerVisitHome struct {
 	Deck [8]components.Card
 	Hi int32
 	Lo int32
+	Seasons []components.Season
 	Username string
+	Trophies int32
+	ChestCycle components.ChestCycle
+	ShopOffers components.ShopOffers
+	Gold int32
+	FavouriteCard int32
+	Stats components.Stats
+	Gems int32
+	Experience int32
+	Level int32
+	Clan components.Clan
+	Games int32 // played games
+	TournamentGames int32
+	Wins int32
+	Losses int32
+	CurrentStreak int32
 }
 
 func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 	o := ServerVisitHome{}
 
-	// tests...
 	var buf *bytes.Reader
 	var tmp int32
 	var btmp byte
 	var isPresent byte
-	var tmpbuf [30]byte
 
 	buf = bytes.NewReader(buff)
 
@@ -76,7 +90,6 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 
 	// HomeUnknownSeason optional (read it if present, continue if not)
 	binary.Read(buf, binary.BigEndian, &isPresent)
-	fmt.Printf("\nseason?: %d", isPresent)
 	if isPresent > 0{
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
@@ -85,31 +98,156 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 	// HomeSeason[]
 	// read length, then read each season info
 	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-	for i:=0;i<int(tmp);i++{
-		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	o.Seasons = make([]components.Season, tmp)
+	for i:=0; i<int(tmp); i++{
+		var ltmp int32
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Seasons[i].Id)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Seasons[i].HigherTrophies)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Seasons[i].Trophies)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Seasons[i].RankingPosition)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &ltmp)
 	}
 
 	// more unknowns..
-	for i:=0;i<8;i++{
+	for i:=0;i<7;i++{
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 	}
 
-	binary.Read(buf, binary.BigEndian, &tmpbuf)
-	fmt.Printf("\n%s", tmpbuf[:])
+	utils.ReadString(buf, binary.BigEndian, &o.Username)
 
-	//utils.ReadString(buf, binary.BigEndian, &o.Username)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 
-	/*
-	buf = bytes.NewReader(buff[0x71:])
-	binary.Read(buf, binary.BigEndian, &fieldLen)
-	name := make([]byte, fieldLen)
-	binary.Read(buf, binary.BigEndian, &name)
-	o.Username = string(name)
-	*/
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Trophies)
+
+	for i:=0;i<15;i++{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	}
+
+	// chestCycle[] and other user info..
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	for i:=0;i<int(tmp);i++{
+		var itype int32
+		var id int32
+		var value int32
+		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+
+		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+		// is chestcycle/shop offer/playergold/favouritecard
+		if itype == 5{
+			if id == resources.PlayerInfoIds["CurrentPosition"]{
+				// chests
+				o.ChestCycle.CurrentPosition = value
+			}else if id == resources.PlayerInfoIds["MagicalChest"]{
+				o.ChestCycle.MagicalPos = value
+			}else if id == resources.PlayerInfoIds["SuperMagicalChest"]{
+				o.ChestCycle.SuperMagicalPos = value
+			}else if id == resources.PlayerInfoIds["LegendaryChest"]{
+				o.ChestCycle.LegendaryPos = value
+			}else if id == resources.PlayerInfoIds["CurrentDay"]{
+				// shop offers
+				o.ShopOffers.CurrentDay = value
+			}else if id == resources.PlayerInfoIds["LegendaryOffer"]{
+				o.ShopOffers.Legendary = value
+			}else if id == resources.PlayerInfoIds["EpicOffer"]{
+				o.ShopOffers.Epic = value
+			}else if id == resources.PlayerInfoIds["ArenaOffer"]{
+				o.ShopOffers.Arena = value
+			}else if id == resources.PlayerInfoIds["Gold"]{
+				o.Gold = value
+			}else if id == resources.PlayerInfoIds["FavouriteCard"]{
+				o.FavouriteCard = value
+			}
+		}
+	}
+
+	// decks4[],decks3[],decks2[] ??
+	for d:=0;d<3;d++{
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		for i:=0; i<int(tmp); i++{
+			var ltmp int32
+			utils.ReadRrsInt32(buf, binary.BigEndian, &ltmp)
+			utils.ReadRrsInt32(buf, binary.BigEndian, &ltmp)
+			utils.ReadRrsInt32(buf, binary.BigEndian, &ltmp)
+		}
+	}
+
+	// stats[]
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	for i:=0; i<int(tmp); i++{
+		var itype int32
+		var id int32
+		var value int32
+		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+
+		if itype == 5{
+			if id == resources.PlayerInfoIds["FavouriteCard"]{
+				o.FavouriteCard = value
+			}else if id == resources.PlayerInfoIds["RecordTrophies"]{
+				o.Stats.RecordTrophies = value
+			}else if id == resources.PlayerInfoIds["3CrownWins"]{
+				o.Stats.CrownWins3 = value
+			}else if id == resources.PlayerInfoIds["Donations"]{
+				o.Stats.Donations = value
+			}else if id == resources.PlayerInfoIds["ChallengeMaxWins"]{
+				o.Stats.ChallengeMaxWins = value
+			}else if id == resources.PlayerInfoIds["ChallengeCardsWon"]{
+				o.Stats.ChallengeCardsWon = value
+			}else if id == resources.PlayerInfoIds["UnlockedCards"]{
+				o.Stats.UnlockedCards = value
+			}
+		}
+	}
+
+	// cardsUsed[] (useless?)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	for i:=0; i<int(tmp); i++{
+		var itype int32
+		var id int32
+		var value int32
+		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+	}
+
+	// unknownProfileComponent (optional)
+	binary.Read(buf, binary.BigEndian, &isPresent)
+	if isPresent > 0{
+		var b byte
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		binary.Read(buf, binary.BigEndian, &b)
+	}
+
+	// more info..
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp) // unknown
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Gems)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp) // freegems
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Experience)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Level)
+
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp) // unknown
+
+	// clan info
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	if tmp > 0{
+		// player has clan
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Clan.Hi)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Clan.Lo)
+		utils.ReadString(buf, binary.BigEndian, &o.Clan.Name)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Clan.Badge)
+		binary.Read(buf, binary.BigEndian, &o.Clan.Role)
+	}
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Games)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.TournamentGames)
+	
+	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Wins)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.Losses)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.CurrentStreak)
 
 	return o
 }
