@@ -8,12 +8,6 @@ This is a Clash Royale basic client. Only some packets have been included, you c
 2. Run the install script `install.sh` to install all the dependencies.
 3. Use this library in your own project. You can see an example in `main.go`.
 
-### Usage
-
-Start both, the TelegramBot (crtgbot) and CRBot (crbot) binaries. Pass your configuration file path using `-c` flag. Example: `crbot -c /path/to/config.json`.
-
-Check `config_example.json` to create your own config file.
-
 ### Why?
 
 I developed this lib just to learn more about Go and because I wanted to translate similar work to Golang.
