@@ -51,6 +51,7 @@ type ServerVisitHome struct {
 	Gems int32
 	Experience int32
 	Level int32
+	HasClan bool
 	Clan components.Clan
 	Games int32 // played games
 	TournamentGames int32
@@ -243,7 +244,8 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 
 	// clan info
 	utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
-	if tmp > 0{
+	o.HasClan = (tmp > 1)
+	if tmp > 1{
 		// player has clan
 		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Clan.Hi)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &o.Clan.Lo)
