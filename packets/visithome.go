@@ -130,17 +130,21 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 		var itype int32
 		var id int32
 		var value int32
-		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
 
+		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+		//fmt.Printf("\ntype: %d", itype)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		//fmt.Printf("\nid: %d", id)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+		//fmt.Printf("\nvalue: %d", value)
+
 		// is chestcycle/shop offer/playergold/favouritecard
 		if itype == 5{
 			if id == resources.PlayerInfoIds["CurrentPosition"]{
 				// chests
 				o.ChestCycle.CurrentPosition = value
-			}else if id == resources.PlayerInfoIds["MagicalChest"]{
-				o.ChestCycle.MagicalPos = value
+			}else if id == resources.PlayerInfoIds["EpicChest"]{
+				o.ChestCycle.EpicPos = value
 			}else if id == resources.PlayerInfoIds["SuperMagicalChest"]{
 				o.ChestCycle.SuperMagicalPos = value
 			}else if id == resources.PlayerInfoIds["LegendaryChest"]{
@@ -180,8 +184,11 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 		var id int32
 		var value int32
 		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+		//fmt.Printf("\ntype: %d", itype)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		//fmt.Printf("\nid: %d", id)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+		//fmt.Printf("\nvalue: %d", value)
 
 		if itype == 5{
 			if id == resources.PlayerInfoIds["FavouriteCard"]{
@@ -209,8 +216,11 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 		var id int32
 		var value int32
 		utils.ReadRrsInt32(buf, binary.BigEndian, &itype)
+		//fmt.Printf("\ntype: %d", itype)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &id)
+		//fmt.Printf("\nid: %d", id)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &value)
+		//fmt.Printf("\nvalue: %d", value)
 	}
 
 	// unknownProfileComponent (optional)

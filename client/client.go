@@ -51,21 +51,20 @@ func (o *CRClient) RecvPacket() (packets.Packet){
 
 	var MAX_LENGTH = 20000
     var buf [20000]byte
-    var n int // bytes read
     var err error
 
-    n, err = o.Socket.Read(buf[:7])
+    _, err = o.Socket.Read(buf[:7])
     if err != nil{
     	panic(err)
     }
 
-    pkt := packets.NewPacketFromBytes(buf[:], n)
+    pkt := packets.NewPacketFromBytes(buf[:])
 
     if int(pkt.Length) > MAX_LENGTH{
         return pkt
     }
 
-    n, err = o.Socket.Read(buf[:pkt.Length])
+    _, err = o.Socket.Read(buf[:pkt.Length])
     if err != nil{
         panic(err)
     }

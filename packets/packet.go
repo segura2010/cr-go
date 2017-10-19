@@ -48,7 +48,7 @@ func (o *Packet) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
-func NewPacketFromBytes(buff []byte, length int) (Packet){
+func NewPacketFromBytes(buff []byte) (Packet){
 	// It creates the message bytes ready to be sent
 	buf := bytes.NewReader(buff)
 
@@ -58,9 +58,7 @@ func NewPacketFromBytes(buff []byte, length int) (Packet){
 	binary.Read(buf, binary.BigEndian, &o.Type)
 	binary.Read(buf, binary.BigEndian, &messageLength)
 	binary.Read(buf, binary.BigEndian, &o.Version)
-
-	//headerLen := 7
-	//o.Length = int32(length - headerLen)
+	
 	o.Length = int32(utils.Int24ToInt32(messageLength[:]))
 
 	var payload = make([]byte, o.Length)
