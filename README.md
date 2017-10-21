@@ -19,6 +19,6 @@ I have used as reference the following libs/works about CR:
 - node-cr-proxy: https://github.com/royale-proxy/node-cr-proxy
 - NodeJS clash-royale-client: https://github.com/aperpen/clash-royale-client
 - cr-messages: https://github.com/royale-proxy/cr-messages
-
+- I also want to thank the developers from the "Royale Dvelopers" Discord's channel (https://discord.gg/BuUtGPM) for their help :)
 
 **Tested on Go 1.8.3**
