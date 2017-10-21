@@ -8,6 +8,8 @@ import (
     "github.com/segura2010/cr-go/packets"
 )
 
+// it implements the communication with the server (using sockets) and the calls to the encryption/decryption
+// functions every time we send/receive a packet
 type CRClient struct {
     Crypt crypto.Crypto
     Socket net.Conn 

@@ -7,6 +7,7 @@ import (
 	"github.com/segura2010/cr-go/utils"
 )
 
+// It represents the ClientLogin message with all the fields we need to send to the server
 type ClientLogin struct {
 	Hi int32
 	Lo int32
@@ -38,6 +39,8 @@ type ClientLogin struct {
 	U26 byte
 }
 
+// it creates a new ClientLogin message using the default values
+// you have to set Hi, Lo and PassToken with your account details
 func NewDefaultClientLogin() (ClientLogin){
 	// Default values for version 2.0.2 Android
 	o := ClientLogin{
@@ -119,6 +122,7 @@ func (o *ClientLogin) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
+// It represents the ServerLoginOk message received when we successfully logged in
 type ServerLoginOk struct {
 	Hi int32
 	Lo int32

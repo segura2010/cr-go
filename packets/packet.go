@@ -8,6 +8,7 @@ import(
 	"github.com/segura2010/cr-go/utils"
 )
 
+// It is a map with the definition of some client and server messages ID
 var MessageType = map[string]uint16{
 	// Server
 	"ServerHello": 20100,
@@ -23,12 +24,17 @@ var MessageType = map[string]uint16{
 	"ClientKeepAlive": 10108,
 }
 
+// It represents a packet
 type Packet struct {
+	// message type
     Type uint16
+    // encrypted message length
     Length int32
     Version uint16
-    Payload []byte // the encrypted message
-    DecryptedPayload []byte // the message itself
+    // the encrypted message
+    Payload []byte
+    // the message itself
+    DecryptedPayload []byte
 }
 
 func (o *Packet) Bytes() ([]byte){

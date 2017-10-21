@@ -7,6 +7,7 @@ import (
 	"github.com/segura2010/cr-go/utils"
 )
 
+// It represents the Hello packet sent by the client at the beginning of the communication
 type ClientHello struct {
 	Protocol int32
 	KeyVersion int32
@@ -18,6 +19,7 @@ type ClientHello struct {
 	AppStore int32
 }
 
+// creates a new hello message with default values
 func NewDefaultClientHello() (ClientHello){
 	// Default values for version 2.0.2 Android
 	o := ClientHello{
@@ -34,6 +36,7 @@ func NewDefaultClientHello() (ClientHello){
 	return o
 }
 
+// creates a ClientHello object from a byte array
 func NewClientHelloFromBytes(buff []byte) (ClientHello){
 	o := ClientHello{}
 
@@ -59,6 +62,7 @@ func NewClientHelloFromBytes(buff []byte) (ClientHello){
 	return o
 }
 
+// Returns the byte array representation of the ClientHello message (ready to send)
 func (o *ClientHello) Bytes() ([]byte){
 	// It creates the message bytes ready to be sent
 	buf := new(bytes.Buffer)
@@ -77,10 +81,12 @@ func (o *ClientHello) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
+// It represents the server response for the hello message
 type ServerHello struct {
 	SessionKey []byte
 }
 
+// creates a ServerHello object from a byte array
 func NewServerHelloFromBytes(buff []byte) (ServerHello){
 	o := ServerHello{}
 

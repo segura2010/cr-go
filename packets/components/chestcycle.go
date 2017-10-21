@@ -1,5 +1,6 @@
 package components
 
+// It represents the chest cycle for the player
 type ChestCycle struct {
 	CurrentPosition int32
 	SuperMagicalPos int32

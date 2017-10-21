@@ -10,6 +10,7 @@ import (
     "github.com/segura2010/cr-go/packets"
 )
 
+// it implements all the needed methods to encrypt and decrypt the messages
 type Crypto struct {
     PrivateKey [32]byte
     PublicKey [32]byte

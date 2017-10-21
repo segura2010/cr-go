@@ -6,10 +6,12 @@ import (
 	"io"
 )
 
+// it converts int24 to int32
 func Int24ToInt32(bs []byte) uint32 {
     return uint32(bs[2]) | uint32(bs[1])<<8 | uint32(bs[0])<<16
 }
 
+// it returns a RRSINT32 (supercell's special int32) from an int32
 func GetRrsInt32(value int32)([]byte){
 	buf := new(bytes.Buffer)
 
@@ -42,6 +44,7 @@ func GetRrsInt32(value int32)([]byte){
     return buf.Bytes()
 }
 
+// it reads a RRSINT32 (supercell's special int32) from a packet and returns it as int32
 func ReadRrsInt32(w io.Reader, order binary.ByteOrder, data *int32){
 	var c int32 = 0
 	var value int32 = int32(uint32(0) >> 0) // uint32(x)>>y = x>>>y
@@ -77,6 +80,7 @@ func ReadRrsInt32(w io.Reader, order binary.ByteOrder, data *int32){
     *data = int32(value)
 }
 
+// it writes a byte array in a buffer (first it writes the length of the []byte and then the array itself)
 func WriteBytes(w io.Writer, order binary.ByteOrder, data []byte){
 	var fieldLen int32
 	fieldLen = int32(len(data))
@@ -84,6 +88,7 @@ func WriteBytes(w io.Writer, order binary.ByteOrder, data []byte){
 	binary.Write(w, order, data)
 }
 
+// it reads a string from a buffer (packet received from the server)
 func ReadString(w io.Reader, order binary.ByteOrder, data *string){
 	var fieldLen int32
 	var field []byte
@@ -109,6 +114,7 @@ func StringIndexOf(array string, e rune) (int){
 
 var IDCHARS = "0289PYLQGRJCUV"
 
+// it transforms the user tag to a long int represented as two int32 (the player ID)
 func Tag2HiLo(tag string) [2]int32{
 	charLen := len(IDCHARS)
 	id := 0
@@ -124,6 +130,7 @@ func Tag2HiLo(tag string) [2]int32{
     return [2]int32{int32(hi), int32(lo)}
 }
 
+// it transforms the player ID (two int32) to a tag
 func HiLo2Tag(hi, lo int32) string{
 	charLen := len(IDCHARS)
 	id := (int64(lo) << 8) + int64(hi)

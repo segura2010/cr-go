@@ -35,11 +35,14 @@ func (o *ClientVisitHome) Bytes() ([]byte){
 	return buf.Bytes()
 }
 
-
+// It represents the ServerVisitHome response for the ClientVisitHome request
 type ServerVisitHome struct {
+	// actual player's deck
 	Deck [8]components.Card
+	// player identifier
 	Hi int32
 	Lo int32
+	// information about the seasons (it is optional, depending on the player trophies)
 	Seasons []components.Season
 	Username string
 	Trophies int32
@@ -53,7 +56,8 @@ type ServerVisitHome struct {
 	Level int32
 	HasClan bool
 	Clan components.Clan
-	Games int32 // played games
+	// total played games
+	Games int32
 	TournamentGames int32
 	Wins int32
 	Losses int32
