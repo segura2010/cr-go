@@ -185,7 +185,7 @@ func NewServerLoginOkFromBytes(buff []byte) (ServerLoginOk){
 	return o
 }
 
-// It represents the ServerLoginOk message received when we successfully logged in
+// It represents the ServerLoginFailed message
 type ServerLoginFailed struct {
 	ErrorCode int32
 	ResourceFingerprintData string
