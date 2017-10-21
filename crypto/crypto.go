@@ -47,6 +47,13 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		//fmt.Printf("\nReceived sessionkey: %x", o.SessionKey)
 	}else if pkt.Type == packets.MessageType["ServerLoginFailed"]{
 		//fmt.Printf("\nServerLoginFailed")
+		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
+		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &tmpNonce.EncryptedNonce, &o.SharedKey)
+		if decrypted{
+			pkt.DecryptedPayload = out
+		}else{
+			pkt.DecryptedPayload = pkt.Payload
+		}
 	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
 		//fmt.Printf("\nServerLoginOK")
 		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])

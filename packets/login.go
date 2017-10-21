@@ -185,3 +185,33 @@ func NewServerLoginOkFromBytes(buff []byte) (ServerLoginOk){
 	return o
 }
 
+// It represents the ServerLoginOk message received when we successfully logged in
+type ServerLoginFailed struct {
+	ErrorCode int32
+	ResourceFingerprintData string
+	RedirectDomain string
+	ContentURL string
+	UpdateURL string
+	Reason string
+	SecondsUntilMantinanceEnd int32
+}
+
+func NewServerLoginFailedFromBytes(buff []byte) (ServerLoginFailed){
+	o := ServerLoginFailed{}
+
+	var buf *bytes.Reader
+	//var tmp16 int16
+
+	buf = bytes.NewReader(buff)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.ErrorCode)
+	utils.ReadString(buf, binary.BigEndian, &o.ResourceFingerprintData)
+	utils.ReadString(buf, binary.BigEndian, &o.RedirectDomain)
+	utils.ReadString(buf, binary.BigEndian, &o.ContentURL)
+	utils.ReadString(buf, binary.BigEndian, &o.UpdateURL)
+	//binary.Read(buf, binary.BigEndian, &tmp16)
+	utils.ReadString(buf, binary.BigEndian, &o.Reason)
+	utils.ReadRrsInt32(buf, binary.BigEndian, &o.SecondsUntilMantinanceEnd)
+
+	return o
+}
+
