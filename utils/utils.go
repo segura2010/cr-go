@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"bytes"
 	"io"
+	"regexp"
 )
 
 // it converts int24 to int32
@@ -143,4 +144,9 @@ func HiLo2Tag(hi, lo int32) string{
 	}
 
     return tag
+}
+
+func IsValidTag(tag string) (bool){
+	matched, _ := regexp.MatchString("[^"+ IDCHARS +"]", tag)
+	return !matched
 }
