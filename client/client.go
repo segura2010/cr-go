@@ -2,7 +2,6 @@ package client
 
 import (
 	"net"
-    //"fmt"
 
     "github.com/segura2010/cr-go/crypto"
     "github.com/segura2010/cr-go/packets"
@@ -50,10 +49,11 @@ func (o *CRClient) SendPacket(pkt packets.Packet) (packets.Packet){
 
 // It receives and decrypts the received packet
 func (o *CRClient) RecvPacket() (packets.Packet){
-
+    
 	var MAX_LENGTH = 20000
     var buf [20000]byte
     var err error
+    var n int
 
     _, err = o.Socket.Read(buf[:7])
     if err != nil{
@@ -63,16 +63,37 @@ func (o *CRClient) RecvPacket() (packets.Packet){
     pkt := packets.NewPacketFromBytes(buf[:])
 
     if int(pkt.Length) > MAX_LENGTH{
-        return pkt
+        // bad length... ???
+        pkt.Length = int32(MAX_LENGTH)
+        n, err = o.Socket.Read(buf[:pkt.Length])
+        if err != nil{
+            panic(err)
+        }
+        pkt.Length = int32(n)
+        pkt.Payload = buf[:pkt.Length]
+    }else{
+        // the packet could be sent in multiple chunks, so I have to
+        // read until I read the full packet
+        total := 0
+        var tmpbuf []byte
+        for{
+            // read until we read the full packet
+            diff := int(pkt.Length) - total
+            n, err = o.Socket.Read(buf[:diff])
+            if err != nil{
+                panic(err)
+            }
+            total += n
+            tmpbuf = append(tmpbuf, buf[:n]...)
+            if int32(total) >= pkt.Length{
+                break
+            }
+        }
+        pkt.Payload = tmpbuf
     }
-
-    _, err = o.Socket.Read(buf[:pkt.Length])
-    if err != nil{
-        panic(err)
-    }
-    pkt.Payload = buf[:pkt.Length]
 
     pkt = o.Crypt.DecryptPacket(pkt)
 
     return pkt
+    
 }

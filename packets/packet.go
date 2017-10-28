@@ -3,7 +3,6 @@ package packets
 import(
 	"encoding/binary"
 	"bytes"
-	//"fmt"
 
 	"github.com/segura2010/cr-go/utils"
 )
