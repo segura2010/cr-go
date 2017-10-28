@@ -28,7 +28,7 @@ func NewDefaultClientHello() (ClientHello){
 		MajorVersion: 3,
 		MinorVersion: 0,
 		Build: 690,
-		ContentHash: "ccfe9f95663453bc252f4367055d3ec3e022ae65",
+		ContentHash: "fd6c090cd518214e497d98b8eb3087451c14858b",
 		DeviceType: 2,
 		AppStore: 29,
 	}
