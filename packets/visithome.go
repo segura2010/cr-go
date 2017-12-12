@@ -88,6 +88,7 @@ func NewServerVisitHomeFromBytes(buff []byte) (ServerVisitHome){
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
+		utils.ReadRrsInt32(buf, binary.BigEndian, &tmp)
 	}
 
 	binary.Read(buf, binary.BigEndian, &o.Hi)
