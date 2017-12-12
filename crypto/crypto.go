@@ -54,7 +54,7 @@ func (o *Crypto) DecryptPacket(pkt packets.Packet) (packets.Packet){
 		}else{
 			pkt.DecryptedPayload = pkt.Payload
 		}
-	}else if pkt.Type == packets.MessageType["ServerLoginOk"]{
+	}else if pkt.Type == packets.MessageType["ServerLoginOk"] || pkt.Type == packets.MessageType["NewServerLoginOk"]{
 		//fmt.Printf("\nServerLoginOK")
 		tmpNonce := NewNonceWithNonce(o.PublicKey[:], o.ServerKey[:], o.EncryptionNonce.EncryptedNonce[:])
 		out, decrypted := box.OpenAfterPrecomputation(nil, pkt.Payload, &tmpNonce.EncryptedNonce, &o.SharedKey)

@@ -13,6 +13,7 @@ var MessageType = map[string]uint16{
 	"ServerHello": 20100,
 	"ServerLoginFailed": 20103,
 	"ServerLoginOk": 20104,
+	"NewServerLoginOk": 22280,
 	"ServerVisitedHome": 24113,
 	"ServerKeepAliveOk": 20108,
 
