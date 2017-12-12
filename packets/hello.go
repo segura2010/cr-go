@@ -24,13 +24,13 @@ func NewDefaultClientHello() (ClientHello){
 	// Default values for version 2.0.2 Android
 	o := ClientHello{
 		Protocol: 1,
-		KeyVersion: 14,
+		KeyVersion: 15,
 		MajorVersion: 3,
 		MinorVersion: 0,
-		Build: 690,
-		ContentHash: "fd6c090cd518214e497d98b8eb3087451c14858b",
+		Build: 830,
+		ContentHash: "3f6063a89e32b2403462696cbb5e0f68f8e58ea2",
 		DeviceType: 2,
-		AppStore: 29,
+		AppStore: 2,
 	}
 
 	return o
