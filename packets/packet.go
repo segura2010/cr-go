@@ -15,13 +15,13 @@ var MessageType = map[string]uint16{
 	"ServerLoginOk": 20104,
 	"NewServerLoginOk": 22280,
 	"ServerVisitedHome": 24113,
-	"ServerKeepAliveOk": 20108,
+	"ServerKeepAliveOk": 24135,
 
 	// Client
 	"ClientHello": 10100,
 	"ClientLogin": 10101,
-	"ClientVisitHome": 14113,
-	"ClientKeepAlive": 10108,
+	"ClientVisitHome": 19860,
+	"ClientKeepAlive": 19911,
 }
 
 // It represents a packet
